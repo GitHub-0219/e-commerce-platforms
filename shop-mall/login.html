@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>登录 - Shop Mall</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { background: #fff; }
+    .login-page { min-height: 100vh; display: flex; flex-direction: column; }
+    .login-header {
+      padding: 60px 30px 30px;
+      text-align: center;
+    }
+    .login-logo {
+      font-size: 48px; margin-bottom: 12px;
+    }
+    .login-title { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+    .login-subtitle { font-size: 14px; color: var(--text-hint); margin-top: 6px; }
+    .login-form { padding: 20px 30px; flex: 1; }
+    .form-group {
+      margin-bottom: 16px; position: relative;
+    }
+    .form-input {
+      width: 100%; padding: 14px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 15px; transition: var(--transition);
+      background: var(--bg-page);
+    }
+    .form-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px var(--primary-bg); }
+    .form-input::placeholder { color: var(--text-hint); }
+    .form-row {
+      display: flex; gap: 10px;
+    }
+    .form-row .form-input { flex: 1; }
+    .sms-btn {
+      white-space: nowrap; padding: 14px 16px;
+      background: var(--primary); color: #fff;
+      border-radius: var(--radius-md);
+      font-size: 14px; min-width: 120px;
+      text-align: center; cursor: pointer;
+    }
+    .sms-btn:active { background: var(--primary-dark); }
+    .sms-btn.disabled { background: #ccc; pointer-events: none; }
+    .form-options {
+      display: flex; justify-content: space-between;
+      margin-bottom: 24px; font-size: 13px;
+    }
+    .form-options label {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--text-secondary); cursor: pointer;
+    }
+    .form-options label input[type="checkbox"] {
+      accent-color: var(--primary); width: 16px; height: 16px;
+    }
+    .form-options a { color: var(--primary); }
+    .login-btn {
+      width: 100%; padding: 14px;
+      background: var(--primary); color: #fff;
+      border-radius: var(--radius-full);
+      font-size: 16px; font-weight: 600;
+      margin-bottom: 16px;
+      transition: var(--transition);
+    }
+    .login-btn:active { background: var(--primary-dark); transform: scale(0.98); }
+    .login-btn:disabled { background: #ccc; }
+    .divider-text {
+      display: flex; align-items: center; gap: 12px;
+      margin: 20px 0; color: var(--text-hint); font-size: 13px;
+    }
+    .divider-text::before, .divider-text::after {
+      content: ''; flex: 1; height: 1px; background: var(--border-color);
+    }
+    .social-login {
+      display: flex; justify-content: center; gap: 30px;
+      margin-bottom: 30px;
+    }
+    .social-btn {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; cursor: pointer;
+      transition: var(--transition); border: 1px solid var(--border-color);
+    }
+    .social-btn:active { transform: scale(0.9); }
+    .login-footer {
+      text-align: center; padding: 20px;
+      font-size: 13px; color: var(--text-hint);
+    }
+    .login-footer a { color: var(--primary); }
+    .tab-switch {
+      display: flex; margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .tab-switch-item {
+      flex: 1; text-align: center; padding: 12px;
+      font-size: 15px; color: var(--text-hint);
+      cursor: pointer; position: relative;
+      transition: var(--transition);
+    }
+    .tab-switch-item.active {
+      color: var(--primary); font-weight: 600;
+    }
+    .tab-switch-item.active::after {
+      content: ''; position: absolute;
+      bottom: -1px; left: 20%; right: 20%;
+      height: 2px; background: var(--primary);
+      border-radius: 1px;
+    }
+    .agreement { font-size: 12px; color: var(--text-hint); text-align: center; margin-top: 16px; line-height: 1.6; }
+    .agreement a { color: var(--primary); }
+    @media (min-width: 768px) {
+      .login-form { max-width: 400px; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-header">
+      <div class="login-logo">🛒</div>
+      <div class="login-title">欢迎来到ShopMall</div>
+      <div class="login-subtitle">淘你所爱，尽在ShopMall</div>
+    </div>
+
+    <div class="login-form">
+      <!-- 登录/注册切换 -->
+      <div class="tab-switch">
+        <div class="tab-switch-item active" onclick="switchTab('login')">登录</div>
+        <div class="tab-switch-item" onclick="switchTab('register')">注册</div>
+      </div>
+
+      <!-- 登录表单 -->
+      <div id="login-form">
+        <div class="form-group">
+          <input class="form-input" type="tel" id="login-phone" placeholder="请输入手机号" maxlength="11">
+        </div>
+        <div class="form-group">
+          <div class="form-row">
+            <input class="form-input" type="text" id="login-code" placeholder="验证码" maxlength="6">
+            <button class="sms-btn" id="sms-btn" onclick="sendCode()">获取验证码</button>
+          </div>
+        </div>
+        <div class="form-options">
+          <label><input type="checkbox" checked> 7天内自动登录</label>
+          <a href="#">忘记密码？</a>
+        </div>
+        <button class="login-btn" onclick="doLogin()">登录</button>
+      </div>
+
+      <!-- 注册表单 -->
+      <div id="register-form" style="display:none">
+        <div class="form-group">
+          <input class="form-input" type="tel" id="reg-phone" placeholder="请输入手机号" maxlength="11">
+        </div>
+        <div class="form-group">
+          <div class="form-row">
+            <input class="form-input" type="text" id="reg-code" placeholder="验证码" maxlength="6">
+            <button class="sms-btn" id="reg-sms-btn" onclick="sendRegCode()">获取验证码</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <input class="form-input" type="password" id="reg-pwd" placeholder="设置密码（6-20位）">
+        </div>
+        <div class="form-group">
+          <input class="form-input" type="text" id="reg-nick" placeholder="设置昵称">
+        </div>
+        <button class="login-btn" onclick="doRegister()">注册</button>
+        <div class="agreement">
+          注册即表示同意 <a href="#">《用户协议》</a> 和 <a href="#">《隐私政策》</a>
+        </div>
+      </div>
+
+      <div class="divider-text">其他登录方式</div>
+      <div class="social-login">
+        <div class="social-btn" onclick="socialLogin('wechat')">💚</div>
+        <div class="social-btn" onclick="socialLogin('alipay')">💙</div>
+        <div class="social-btn" onclick="socialLogin('qq')">🐧</div>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      遇到问题？<a href="#">联系客服</a>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    let currentTab = 'login';
+    let smsTimer = null;
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-switch-item').forEach((el, i) => {
+        el.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+      });
+      document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+    }
+
+    function countdown(btn, seconds) {
+      btn.classList.add('disabled');
+      let s = seconds;
+      btn.textContent = s + 's后重试';
+      smsTimer = setInterval(() => {
+        s--;
+        if (s <= 0) {
+          clearInterval(smsTimer);
+          btn.classList.remove('disabled');
+          btn.textContent = '获取验证码';
+        } else {
+          btn.textContent = s + 's后重试';
+        }
+      }, 1000);
+    }
+
+    function sendCode() {
+      const phone = document.getElementById('login-phone').value;
+      if (phone.length !== 11) { Utils.showToast('请输入正确的手机号'); return; }
+      countdown(document.getElementById('sms-btn'), 60);
+      Utils.showToast('验证码已发送');
+    }
+
+    function sendRegCode() {
+      const phone = document.getElementById('reg-phone').value;
+      if (phone.length !== 11) { Utils.showToast('请输入正确的手机号'); return; }
+      countdown(document.getElementById('reg-sms-btn'), 60);
+      Utils.showToast('验证码已发送');
+    }
+
+    function doLogin() {
+      const phone = document.getElementById('login-phone').value;
+      const code = document.getElementById('login-code').value;
+      if (phone.length !== 11) { Utils.showToast('请输入正确的手机号'); return; }
+      if (code.length < 4) { Utils.showToast('请输入验证码'); return; }
+      // 模拟登录
+      Utils.storage.set('user', { phone, name: '淘宝用户', loggedIn: true });
+      Utils.showToast('登录成功');
+      setTimeout(() => location.href = 'index.html', 1000);
+    }
+
+    function doRegister() {
+      const phone = document.getElementById('reg-phone').value;
+      const code = document.getElementById('reg-code').value;
+      const pwd = document.getElementById('reg-pwd').value;
+      const nick = document.getElementById('reg-nick').value;
+      if (phone.length !== 11) { Utils.showToast('请输入正确的手机号'); return; }
+      if (code.length < 4) { Utils.showToast('请输入验证码'); return; }
+      if (pwd.length < 6) { Utils.showToast('密码至少6位'); return; }
+      if (!nick) { Utils.showToast('请输入昵称'); return; }
+      Utils.storage.set('user', { phone, name: nick, loggedIn: true });
+      Utils.showToast('注册成功');
+      setTimeout(() => location.href = 'index.html', 1000);
+    }
+
+    function socialLogin(type) {
+      const names = { wechat: '微信', alipay: '支付宝', qq: 'QQ' };
+      Utils.showToast(`正在跳转${names[type]}授权...`);
+      setTimeout(() => {
+        Utils.storage.set('user', { name: names[type] + '用户', loggedIn: true });
+        location.href = 'index.html';
+      }, 1500);
+    }
+  </script>
+</body>
+</html>

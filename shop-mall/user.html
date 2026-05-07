@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>我的 - Shop Mall</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .user-header {
+      background: linear-gradient(135deg, #FF4D4F, #FF7875);
+      padding: 30px 20px 40px;
+      color: #fff;
+    }
+    .user-profile {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .user-avatar {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; border: 2px solid rgba(255,255,255,0.5);
+    }
+    .user-name { font-size: 18px; font-weight: 600; }
+    .user-level {
+      display: inline-block; margin-top: 4px;
+      padding: 2px 10px; border-radius: var(--radius-full);
+      background: rgba(255,255,255,0.2); font-size: 12px;
+    }
+    .user-stats {
+      display: flex; justify-content: space-around;
+      margin-top: 20px; text-align: center;
+    }
+    .user-stat .num { font-size: 20px; font-weight: 700; }
+    .user-stat .label { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+    .order-menu {
+      background: var(--bg-card); margin: -20px 12px 10px;
+      border-radius: var(--radius-md); padding: 16px;
+      position: relative; z-index: 1;
+      box-shadow: var(--shadow-md);
+    }
+    .order-menu-title {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+    .order-menu-title h3 { font-size: 15px; font-weight: 600; }
+    .order-menu-title a { font-size: 13px; color: var(--text-hint); }
+    .order-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    }
+    .order-item-btn {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 10px 4px; cursor: pointer; position: relative;
+      transition: var(--transition);
+    }
+    .order-item-btn:active { transform: scale(0.9); }
+    .order-item-btn .order-icon { font-size: 24px; margin-bottom: 4px; }
+    .order-item-btn .order-label { font-size: 12px; color: var(--text-secondary); }
+    .order-item-btn .order-badge {
+      position: absolute; top: 4px; right: 20%;
+      min-width: 16px; height: 16px; padding: 0 4px;
+      background: var(--primary); color: #fff;
+      font-size: 10px; border-radius: var(--radius-full);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .menu-section {
+      background: var(--bg-card); margin: 0 12px 10px;
+      border-radius: var(--radius-md); overflow: hidden;
+    }
+    .menu-section-title {
+      padding: 14px 16px 8px; font-size: 14px; font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .menu-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; cursor: pointer;
+      border-bottom: 1px solid var(--border-color);
+      transition: var(--transition);
+    }
+    .menu-item:last-child { border: none; }
+    .menu-item:active { background: var(--bg-page); }
+    .menu-item .menu-icon { font-size: 20px; width: 24px; text-align: center; }
+    .menu-item .menu-text { flex: 1; font-size: 14px; }
+    .menu-item .menu-arrow { color: var(--text-hint); font-size: 16px; }
+    .menu-item .menu-badge {
+      background: var(--primary); color: #fff;
+      padding: 2px 8px; border-radius: var(--radius-full);
+      font-size: 11px; margin-right: 8px;
+    }
+    .address-list {
+      padding: 0 16px;
+    }
+    .address-card-mini {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border-color);
+    }
+    .address-card-mini:last-child { border: none; }
+    .address-card-mini .addr-icon { font-size: 20px; }
+    .address-card-mini .addr-info { flex: 1; }
+    .address-card-mini .addr-user { font-size: 14px; font-weight: 500; }
+    .address-card-mini .addr-detail { font-size: 12px; color: var(--text-hint); margin-top: 2px; }
+    .address-card-mini .addr-default {
+      font-size: 11px; color: var(--primary); border: 1px solid var(--primary);
+      padding: 2px 6px; border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- 用户头部 -->
+    <div class="user-header">
+      <div class="user-profile">
+        <div class="user-avatar">👤</div>
+        <div>
+          <div class="user-name" id="user-name">淘宝用户</div>
+          <span class="user-level" id="user-level">VIP3</span>
+        </div>
+      </div>
+      <div class="user-stats">
+        <div class="user-stat"><div class="num">128</div><div class="label">收藏</div></div>
+        <div class="user-stat"><div class="num">56</div><div class="label">关注</div></div>
+        <div class="user-stat"><div class="num">32</div><div class="label">足迹</div></div>
+        <div class="user-stat"><div class="num">520</div><div class="label">积分</div></div>
+      </div>
+    </div>
+
+    <!-- 我的订单 -->
+    <div class="order-menu">
+      <div class="order-menu-title">
+        <h3>📋 我的订单</h3>
+        <a href="#">全部订单 ›</a>
+      </div>
+      <div class="order-grid">
+        <div class="order-item-btn">
+          <span class="order-icon">💰</span>
+          <span class="order-label">待付款</span>
+          <span class="order-badge" id="badge-unpaid">2</span>
+        </div>
+        <div class="order-item-btn">
+          <span class="order-icon">📦</span>
+          <span class="order-label">待发货</span>
+          <span class="order-badge" id="badge-unshipped">1</span>
+        </div>
+        <div class="order-item-btn">
+          <span class="order-icon">🚚</span>
+          <span class="order-label">待收货</span>
+          <span class="order-badge" id="badge-undelivered">3</span>
+        </div>
+        <div class="order-item-btn">
+          <span class="order-icon">⭐</span>
+          <span class="order-label">待评价</span>
+          <span class="order-badge" id="badge-unreviewd">5</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 工具与服务 -->
+    <div class="menu-section">
+      <div class="menu-section-title">🔧 工具与服务</div>
+      <div class="menu-item"><span class="menu-icon">🎫</span><span class="menu-text">优惠券</span><span class="menu-badge">3张可用</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item"><span class="menu-icon">❤️</span><span class="menu-text">我的收藏</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item"><span class="menu-icon">👣</span><span class="menu-text">浏览足迹</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item"><span class="menu-icon">💬</span><span class="menu-text">消息通知</span><span class="menu-badge">5条未读</span><span class="menu-arrow">›</span></div>
+    </div>
+
+    <!-- 收货地址 -->
+    <div class="menu-section">
+      <div class="menu-section-title">📍 收货地址</div>
+      <div class="address-list" id="address-list"></div>
+      <div class="menu-item" onclick="Utils.showToast('添加新地址')">
+        <span class="menu-icon">➕</span>
+        <span class="menu-text" style="color:var(--primary)">添加新地址</span>
+        <span class="menu-arrow">›</span>
+      </div>
+    </div>
+
+    <!-- 设置 -->
+    <div class="menu-section">
+      <div class="menu-section-title">⚙️ 设置</div>
+      <div class="menu-item"><span class="menu-icon">👤</span><span class="menu-text">账户信息</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item"><span class="menu-icon">🔒</span><span class="menu-text">隐私设置</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item"><span class="menu-icon">📞</span><span class="menu-text">联系客服</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item"><span class="menu-icon">ℹ️</span><span class="menu-text">关于我们</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item" onclick="if(confirm('确定退出登录？'))location.href='login.html'">
+        <span class="menu-icon">🚪</span>
+        <span class="menu-text" style="color:var(--danger)">退出登录</span>
+      </div>
+    </div>
+
+    <div style="height:20px"></div>
+  </div>
+
+  <nav class="tab-bar" id="tab-bar"></nav>
+  <script src="js/app.js"></script>
+  <script>
+    initTabBar(4);
+
+    const user = MOCK.user;
+    document.getElementById('user-name').textContent = user.name;
+    document.getElementById('user-level').textContent = user.level;
+    document.getElementById('badge-unpaid').textContent = user.orders.unpaid;
+    document.getElementById('badge-unshipped').textContent = user.orders.unshipped;
+    document.getElementById('badge-undelivered').textContent = user.orders.undelivered;
+    document.getElementById('badge-unreviewd').textContent = user.orders.unreviewd;
+
+    // 渲染地址
+    document.getElementById('address-list').innerHTML = user.addresses.map(a => `
+      <div class="address-card-mini">
+        <span class="addr-icon">📍</span>
+        <div class="addr-info">
+          <div class="addr-user">${a.name} ${a.phone}</div>
+          <div class="addr-detail">${a.address}</div>
+        </div>
+        ${a.isDefault ? '<span class="addr-default">默认</span>' : ''}
+      </div>
+    `).join('');
+  </script>
+</body>
+</html>

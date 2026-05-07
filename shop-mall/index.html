@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Shop Mall - 淘你所爱</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .home-header {
+      background: var(--primary);
+      padding: 10px 16px;
+      display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .home-header .logo { font-size: 20px; font-weight: 700; color: #fff; white-space: nowrap; }
+    .home-header .search-bar { background: rgba(255,255,255,0.9); }
+    .banner-wrapper {
+      position: relative; overflow: hidden;
+      height: 180px; margin: 12px;
+      border-radius: var(--radius-md);
+    }
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px; padding: 16px;
+      background: var(--bg-card);
+      margin: 12px; border-radius: var(--radius-md);
+    }
+    .category-item {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 10px 4px; cursor: pointer;
+      transition: var(--transition);
+    }
+    .category-item:active { transform: scale(0.9); }
+    .category-item .cat-icon { font-size: 28px; margin-bottom: 4px; }
+    .category-item .cat-name { font-size: 11px; color: var(--text-secondary); }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 16px 8px;
+    }
+    .section-header h2 { font-size: 17px; font-weight: 600; }
+    .section-header a { font-size: 13px; color: var(--text-hint); }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px; padding: 0 12px 12px;
+    }
+    .hot-banner {
+      margin: 12px; padding: 16px;
+      background: linear-gradient(135deg, #FF4D4F, #FF7875);
+      border-radius: var(--radius-md);
+      color: #fff;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .hot-banner h3 { font-size: 18px; margin-bottom: 4px; }
+    .hot-banner p { font-size: 13px; opacity: 0.9; }
+    .hot-countdown {
+      background: rgba(0,0,0,0.2); border-radius: var(--radius-sm);
+      padding: 8px 12px; text-align: center;
+    }
+    .hot-countdown .time { font-size: 20px; font-weight: 700; font-family: monospace; }
+    .hot-countdown .label { font-size: 10px; opacity: 0.8; }
+    @media (min-width: 768px) {
+      .category-grid { grid-template-columns: repeat(10, 1fr); }
+      .product-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 1200px) {
+      .product-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- 顶部搜索 -->
+    <header class="home-header">
+      <span class="logo">🛒 ShopMall</span>
+      <div class="search-bar" onclick="location.href='search.html'">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="搜索商品、店铺" readonly>
+      </div>
+    </header>
+
+    <!-- 轮播Banner -->
+    <div class="banner-wrapper" id="banner"></div>
+
+    <!-- 分类导航 -->
+    <div class="category-grid" id="categories"></div>
+
+    <!-- 限时抢购 -->
+    <div class="hot-banner">
+      <div>
+        <h3>⚡ 限时秒杀</h3>
+        <p>每日10点/20点场</p>
+      </div>
+      <div class="hot-countdown">
+        <div class="label">距结束</div>
+        <div class="time" id="countdown">02:36:18</div>
+      </div>
+    </div>
+
+    <!-- 为你推荐 -->
+    <div class="section-header">
+      <h2>🔥 为你推荐</h2>
+      <a href="search.html">更多 ›</a>
+    </div>
+    <div class="product-grid" id="product-list"></div>
+  </div>
+
+  <!-- 底部Tab -->
+  <nav class="tab-bar" id="tab-bar"></nav>
+
+  <script src="js/app.js"></script>
+  <script>
+    // 初始化轮播
+    initBanner(document.getElementById('banner'), MOCK.banners);
+
+    // 渲染分类
+    document.getElementById('categories').innerHTML = MOCK.categories.map(c =>
+      `<a href="search.html?cat=${c.id}" class="category-item">
+        <span class="cat-icon">${c.icon}</span>
+        <span class="cat-name">${c.name}</span>
+      </a>`
+    ).join('');
+
+    // 渲染商品
+    renderProductGrid(document.getElementById('product-list'), MOCK.products);
+
+    // 倒计时
+    function updateCountdown() {
+      const el = document.getElementById('countdown');
+      if (!el) return;
+      const parts = el.textContent.split(':').map(Number);
+      let total = parts[0] * 3600 + parts[1] * 60 + parts[2];
+      total = Math.max(0, total - 1);
+      const h = String(Math.floor(total / 3600)).padStart(2, '0');
+      const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+      const s = String(total % 60).padStart(2, '0');
+      el.textContent = `${h}:${m}:${s}`;
+    }
+    setInterval(updateCountdown, 1000);
+
+    // 底部Tab
+    initTabBar(0);
+  </script>
+</body>
+</html>

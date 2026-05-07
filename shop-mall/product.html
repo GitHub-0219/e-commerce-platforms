@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>商品详情 - Shop Mall</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .product-gallery {
+      position: relative; overflow: hidden;
+      height: 375px; background: var(--bg-card);
+    }
+    .gallery-track { display: flex; height: 100%; transition: transform 0.3s ease; }
+    .gallery-slide {
+      min-width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 100px;
+    }
+    .gallery-counter {
+      position: absolute; bottom: 12px; right: 12px;
+      background: rgba(0,0,0,0.5); color: #fff;
+      padding: 4px 10px; border-radius: var(--radius-full);
+      font-size: 12px;
+    }
+    .product-main-info {
+      background: var(--bg-card); padding: 16px; margin-bottom: 8px;
+    }
+    .product-price-bar {
+      display: flex; align-items: baseline; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .product-price-bar .price { font-size: 24px; }
+    .product-price-bar .price .symbol { font-size: 16px; }
+    .product-price-bar .price .original { font-size: 14px; }
+    .product-title-main {
+      font-size: 16px; font-weight: 500; line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .product-meta {
+      display: flex; gap: 16px; font-size: 12px; color: var(--text-hint);
+    }
+    .info-section {
+      background: var(--bg-card); padding: 16px; margin-bottom: 8px;
+    }
+    .info-section .section-title {
+      font-size: 15px; font-weight: 600; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .sku-row {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .sku-btn {
+      padding: 8px 16px; border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm); font-size: 13px;
+      cursor: pointer; transition: var(--transition);
+    }
+    .sku-btn.active { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+    .sku-btn:active { transform: scale(0.95); }
+    .shop-card {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .shop-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--primary-bg); display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .shop-name { font-size: 15px; font-weight: 600; }
+    .shop-desc { font-size: 12px; color: var(--text-hint); margin-top: 2px; }
+    .shop-stats { display: flex; gap: 16px; margin-top: 6px; font-size: 12px; }
+    .shop-stats span { color: var(--text-hint); }
+    .shop-stats .val { color: var(--primary); font-weight: 600; }
+    .review-item {
+      padding: 12px 0; border-bottom: 1px solid var(--border-color);
+    }
+    .review-item:last-child { border: none; }
+    .review-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .review-avatar { font-size: 20px; }
+    .review-user { font-size: 13px; font-weight: 500; }
+    .review-stars { color: #FAAD14; font-size: 12px; }
+    .review-content { font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
+    .review-time { font-size: 11px; color: var(--text-hint); margin-top: 6px; }
+    .bottom-action {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--bg-card);
+      display: flex; align-items: center;
+      padding: 8px 12px calc(8px + var(--safe-bottom));
+      border-top: 1px solid var(--border-color);
+      z-index: 100; gap: 8px;
+    }
+    .action-icons {
+      display: flex; gap: 4px;
+    }
+    .action-icon {
+      display: flex; flex-direction: column; align-items: center;
+      font-size: 10px; color: var(--text-hint);
+      padding: 4px 10px; cursor: pointer;
+    }
+    .action-icon .icon { font-size: 20px; margin-bottom: 2px; }
+    .action-btns { flex: 1; display: flex; gap: 8px; }
+    .action-btns .btn { flex: 1; padding: 12px; font-size: 14px; font-weight: 600; }
+    .btn-cart { background: #FFA940; color: #fff; border-radius: var(--radius-full); }
+    .btn-buy { background: var(--primary); color: #fff; border-radius: var(--radius-full); }
+    .sku-modal {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      padding: 20px 16px calc(20px + var(--safe-bottom));
+      z-index: 200;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      max-height: 70vh; overflow-y: auto;
+    }
+    .sku-modal.show { transform: translateY(0); }
+    .sku-modal-mask {
+      position: fixed; inset: 0; background: var(--bg-mask);
+      z-index: 199; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .sku-modal-mask.show { opacity: 1; pointer-events: auto; }
+    .sku-modal .sku-header {
+      display: flex; gap: 12px; margin-bottom: 20px;
+    }
+    .sku-modal .sku-img {
+      width: 80px; height: 80px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center; font-size: 40px;
+    }
+    .sku-modal .sku-price { color: var(--price-color); font-size: 20px; font-weight: 700; }
+    .sku-modal .sku-stock { font-size: 12px; color: var(--text-hint); margin-top: 4px; }
+    .qty-control {
+      display: flex; align-items: center; gap: 0;
+      border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+      overflow: hidden; width: fit-content;
+    }
+    .qty-btn {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-page); font-size: 16px;
+    }
+    .qty-input {
+      width: 48px; height: 32px; text-align: center;
+      border: none; border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color); font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page" style="padding-bottom:70px">
+    <div class="header">
+      <button class="back-btn" onclick="history.back()">‹</button>
+      <span class="title">商品详情</span>
+    </div>
+
+    <!-- 商品图片轮播 -->
+    <div class="product-gallery" id="gallery"></div>
+
+    <!-- 价格信息 -->
+    <div class="product-main-info animate-slide-up">
+      <div class="product-price-bar">
+        <span class="price" id="price"></span>
+        <span class="tag">限时折扣</span>
+      </div>
+      <div class="product-title-main" id="title"></div>
+      <div class="product-meta">
+        <span id="sales-info"></span>
+        <span id="rating-info"></span>
+      </div>
+    </div>
+
+    <!-- 规格选择 -->
+    <div class="info-section">
+      <div class="section-title">📐 规格选择</div>
+      <div class="sku-row" id="sku-colors"></div>
+      <div class="sku-row" id="sku-sizes" style="margin-top:10px"></div>
+    </div>
+
+    <!-- 店铺信息 -->
+    <div class="info-section" id="shop-section"></div>
+
+    <!-- 商品评价 -->
+    <div class="info-section">
+      <div class="section-title">
+        💬 商品评价
+        <span style="font-size:12px;font-weight:400;color:var(--text-hint);margin-left:auto" id="review-count"></span>
+      </div>
+      <div id="reviews"></div>
+    </div>
+
+    <!-- 商品详情图 -->
+    <div class="info-section">
+      <div class="section-title">📋 商品详情</div>
+      <div style="text-align:center;padding:40px 0;color:var(--text-hint);font-size:14px">
+        <div style="font-size:48px;margin-bottom:12px">📦</div>
+        <p>高品质面料，舒适透气</p>
+        <p>精细做工，品质保证</p>
+        <p>7天无理由退换</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部操作栏 -->
+  <div class="bottom-action">
+    <div class="action-icons">
+      <a class="action-icon" href="index.html"><span class="icon">🏠</span>首页</a>
+      <a class="action-icon" href="cart.html"><span class="icon">🛒</span>购物车</a>
+    </div>
+    <div class="action-btns">
+      <button class="btn btn-cart" onclick="openSku('cart')">加入购物车</button>
+      <button class="btn btn-buy" onclick="openSku('buy')">立即购买</button>
+    </div>
+  </div>
+
+  <!-- SKU选择弹窗 -->
+  <div class="sku-modal-mask" id="sku-mask" onclick="closeSku()"></div>
+  <div class="sku-modal" id="sku-modal">
+    <div class="sku-header">
+      <div class="sku-img" id="sku-img"></div>
+      <div>
+        <div class="sku-price" id="sku-price"></div>
+        <div class="sku-stock">库存充足</div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">颜色</div>
+      <div class="sku-row" id="modal-colors"></div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">尺码</div>
+      <div class="sku-row" id="modal-sizes"></div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">数量</div>
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <input class="qty-input" type="number" id="qty-input" value="1" min="1">
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" id="sku-confirm" onclick="confirmSku()">确定</button>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    const productId = parseInt(Utils.getParam('id')) || 1001;
+    const product = MOCK.products.find(p => p.id === productId) || MOCK.products[0];
+    let selectedColor = '黑色';
+    let selectedSize = 'M';
+    let skuAction = 'cart';
+
+    // 渲染商品图片轮播
+    const colors = [getProductColor(product.id), getProductColor(product.id + 1), getProductColor(product.id + 2)];
+    document.getElementById('gallery').innerHTML = `
+      <div class="gallery-track" id="gallery-track">
+        ${colors.map((c, i) => `<div class="gallery-slide" style="background:${c}"><img src="${productImageSVG(product.title, product.id + i)}" style="width:100%;height:100%;object-fit:cover"></div>`).join('')}
+      </div>
+      <div class="gallery-counter"><span id="gallery-idx">1</span>/${colors.length}</div>
+    `;
+
+    // 图片手势
+    let gStartX = 0, gIdx = 0;
+    const gallery = document.getElementById('gallery');
+    const gTrack = document.getElementById('gallery-track');
+    gallery.addEventListener('touchstart', e => gStartX = e.touches[0].clientX);
+    gallery.addEventListener('touchend', e => {
+      const diff = gStartX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) {
+        gIdx = diff > 0 ? Math.min(gIdx + 1, colors.length - 1) : Math.max(gIdx - 1, 0);
+        gTrack.style.transform = `translateX(-${gIdx * 100}%)`;
+        document.getElementById('gallery-idx').textContent = gIdx + 1;
+      }
+    });
+
+    // 渲染基本信息
+    document.getElementById('price').innerHTML = `<span class="symbol">¥</span>${Utils.formatPrice(product.price)} <span class="original">¥${Utils.formatPrice(product.originalPrice)}</span>`;
+    document.getElementById('title').textContent = product.title;
+    document.getElementById('sales-info').textContent = `${Utils.formatSales(product.sales)}人付款`;
+    document.getElementById('rating-info').textContent = `评分 ${product.rating}`;
+
+    // 渲染规格
+    const colorOptions = ['黑色', '白色', '灰色', '蓝色', '红色'];
+    const sizeOptions = ['S', 'M', 'L', 'XL', 'XXL'];
+    function renderSkuButtons(container, options, selected) {
+      return options.map(o => `<span class="sku-btn ${o === selected ? 'active' : ''}" onclick="selectSku(this, '${o === selected ? '' : o}')">${o}</span>`).join('');
+    }
+    document.getElementById('sku-colors').innerHTML = `<span style="font-size:13px;color:var(--text-hint);margin-right:8px">颜色：</span>` + colorOptions.map(o => `<span class="sku-btn ${o === selectedColor ? 'active' : ''}" onclick="selectedColor='${o}';updateSkuDisplay()">${o}</span>`).join('');
+    document.getElementById('sku-sizes').innerHTML = `<span style="font-size:13px;color:var(--text-hint);margin-right:8px">尺码：</span>` + sizeOptions.map(o => `<span class="sku-btn ${o === selectedSize ? 'active' : ''}" onclick="selectedSize='${o}';updateSkuDisplay()">${o}</span>`).join('');
+
+    function updateSkuDisplay() {
+      document.querySelectorAll('#sku-colors .sku-btn').forEach(b => b.classList.toggle('active', b.textContent === selectedColor));
+      document.querySelectorAll('#sku-sizes .sku-btn').forEach(b => b.classList.toggle('active', b.textContent === selectedSize));
+      document.querySelectorAll('#modal-colors .sku-btn').forEach(b => b.classList.toggle('active', b.textContent === selectedColor));
+      document.querySelectorAll('#modal-sizes .sku-btn').forEach(b => b.classList.toggle('active', b.textContent === selectedSize));
+    }
+
+    // 渲染店铺
+    document.getElementById('shop-section').innerHTML = `
+      <div class="shop-card">
+        <div class="shop-avatar">🏪</div>
+        <div style="flex:1">
+          <div class="shop-name">${product.shop}</div>
+          <div class="shop-desc">品质保障 · 极速发货</div>
+          <div class="shop-stats">
+            <span>商品 <span class="val">${Math.floor(Math.random() * 200 + 50)}</span></span>
+            <span>粉丝 <span class="val">${Utils.formatSales(Math.floor(Math.random() * 50000 + 5000))}</span></span>
+            <span>评分 <span class="val">${product.rating}</span></span>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm">进店</button>
+      </div>
+    `;
+
+    // 渲染评价
+    document.getElementById('review-count').textContent = `全部 ${MOCK.reviews.length * 128} 条`;
+    document.getElementById('reviews').innerHTML = MOCK.reviews.map(r => `
+      <div class="review-item">
+        <div class="review-header">
+          <span class="review-avatar">${r.avatar}</span>
+          <span class="review-user">${r.user}</span>
+          <span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+        </div>
+        <div class="review-content">${r.content}</div>
+        <div class="review-time">${r.time}</div>
+      </div>
+    `).join('');
+
+    // SKU弹窗
+    function openSku(action) {
+      skuAction = action;
+      document.getElementById('sku-modal').classList.add('show');
+      document.getElementById('sku-mask').classList.add('show');
+      document.getElementById('sku-img').innerHTML = `<img src="${productImageSVG(product.title, product.id)}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-sm)">`;
+      document.getElementById('sku-price').textContent = '¥' + Utils.formatPrice(product.price);
+      document.getElementById('sku-confirm').textContent = action === 'cart' ? '加入购物车' : '立即购买';
+      document.getElementById('modal-colors').innerHTML = colorOptions.map(o => `<span class="sku-btn ${o === selectedColor ? 'active' : ''}" onclick="selectedColor='${o}';updateSkuDisplay()">${o}</span>`).join('');
+      document.getElementById('modal-sizes').innerHTML = sizeOptions.map(o => `<span class="sku-btn ${o === selectedSize ? 'active' : ''}" onclick="selectedSize='${o}';updateSkuDisplay()">${o}</span>`).join('');
+    }
+
+    function closeSku() {
+      document.getElementById('sku-modal').classList.remove('show');
+      document.getElementById('sku-mask').classList.remove('show');
+    }
+
+    function changeQty(delta) {
+      const input = document.getElementById('qty-input');
+      input.value = Math.max(1, parseInt(input.value) + delta);
+    }
+
+    function confirmSku() {
+      const qty = parseInt(document.getElementById('qty-input').value) || 1;
+      const sku = `${selectedColor}/${selectedSize}`;
+      if (skuAction === 'cart') {
+        Cart.addItem(product, sku, qty);
+        closeSku();
+      } else {
+        // 立即购买 → 存入临时订单
+        Utils.storage.set('temp_order', [{ ...product, sku, qty }]);
+        closeSku();
+        location.href = 'order.html';
+      }
+    }
+
+    // 底部Tab（商品详情页不需要，但保持一致性）
+  </script>
+</body>
+</html>
