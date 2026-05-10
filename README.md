@@ -43,18 +43,24 @@ e-commerce-platforms/
 │   ├── index.html           #   首页
 │   ├── product.html         #   商品详情页
 │   ├── cart.html            #   购物车页
+│   ├── login.html           #   登录页
+│   ├── order.html           #   订单页
+│   ├── search.html          #   搜索页
 │   ├── user.html            #   用户中心页
 │   ├── css/                 #   样式文件
-│   ├── js/                  #   脚本文件
-│   └── assets/              #   静态资源
+│   └── js/                  #   脚本文件
 ├── wholesale/               # 📦 批发平台（1688 风格）
 │   ├── index.html           #   首页
 │   ├── product.html         #   商品详情页
 │   ├── cart.html            #   采购车页
+│   ├── login.html           #   登录页
+│   ├── order.html           #   订单页
+│   ├── search.html          #   搜索页
 │   ├── user.html            #   用户中心页
 │   ├── css/                 #   样式文件
-│   ├── js/                  #   脚本文件
-│   └── assets/              #   静态资源
+│   └── js/                  #   脚本文件
+├── .gitignore
+├── LICENSE
 └── README.md
 ```
 
@@ -88,8 +94,6 @@ python3 -m http.server 8080
 ---
 
 ## 📸 截图
-
-<!-- 请在此处添加项目截图 -->
 
 | 商城首页 | 商品详情 | 批发平台 |
 |----------|----------|----------|
