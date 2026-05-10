@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>采购车 - Wholesale</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .cart-header { background:var(--bg-card); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; border-bottom:1px solid var(--border-color); }
+    .cart-header .title { font-size:17px; font-weight:600; }
+    .cart-header .edit-btn { font-size:14px; color:var(--primary); }
+    .cart-shop { background:var(--bg-card); margin:10px 12px; border-radius:var(--radius-md); overflow:hidden; }
+    .cart-shop-header { display:flex; align-items:center; gap:10px; padding:12px; border-bottom:1px solid var(--border-color); }
+    .cart-shop-header .shop-check, .cart-item .item-check { width:20px; height:20px; border-radius:50%; border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:var(--transition); flex-shrink:0; }
+    .cart-shop-header .shop-check.checked, .cart-item .item-check.checked { border-color:var(--primary); background:var(--primary); color:#fff; font-size:12px; }
+    .cart-item { display:flex; align-items:center; gap:10px; padding:12px; border-bottom:1px solid var(--border-color); }
+    .cart-item:last-child { border:none; }
+    .cart-item .item-img { width:80px; height:80px; border-radius:var(--radius-sm); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    .cart-item .item-info { flex:1; min-width:0; }
+    .cart-item .item-title { font-size:13px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .cart-item .item-sku { font-size:12px; color:var(--text-hint); background:var(--bg-page); padding:2px 8px; border-radius:3px; display:inline-block; margin:4px 0; }
+    .cart-item .item-bottom { display:flex; justify-content:space-between; align-items:center; }
+    .cart-bottom { position:fixed; bottom:0; left:0; right:0; background:var(--bg-card); display:flex; align-items:center; padding:10px 12px calc(10px + var(--safe-bottom)); border-top:1px solid var(--border-color); z-index:99; }
+    .cart-bottom .select-all { display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; }
+    .cart-bottom .total-section { flex:1; text-align:right; margin-right:12px; }
+    .cart-bottom .total-label { font-size:13px; color:var(--text-secondary); }
+    .cart-bottom .total-price { font-size:18px; font-weight:700; color:var(--price-color); }
+    .cart-bottom .checkout-btn { padding:10px 24px; background:var(--primary); color:#fff; border-radius:var(--radius-full); font-size:15px; font-weight:600; border:none; cursor:pointer; }
+    .cart-bottom .checkout-btn.disabled { background:#ccc; pointer-events:none; }
+    .delete-btn { color:var(--text-hint); font-size:12px; padding:4px 8px; border:1px solid var(--border-color); border-radius:var(--radius-sm); cursor:pointer; background:none; }
+    .empty-cart { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 20px; }
+    .empty-cart .empty-icon { font-size:72px; margin-bottom:16px; }
+    .empty-cart .empty-text { font-size:15px; color:var(--text-hint); margin-bottom:20px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="cart-header">
+      <span class="title">🛒 采购车</span>
+      <span class="edit-btn" id="edit-btn" onclick="toggleEdit()">管理</span>
+    </div>
+    <div id="cart-content"></div>
+  </div>
+
+  <div class="cart-bottom" id="cart-bottom" style="display:none">
+    <div class="select-all" onclick="toggleSelectAll()">
+      <span class="item-check" id="select-all-check">✓</span>
+      <span>全选</span>
+    </div>
+    <div class="total-section">
+      <div class="total-label">合计：</div>
+      <div class="total-price" id="total-price">¥0.00</div>
+    </div>
+    <button class="checkout-btn" id="checkout-btn" onclick="checkout()">结算(<span id="checkout-count">0</span>)</button>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    let isEditing = false;
+    let checkedItems = {};
+
+    function getCartItems() { return Utils.storage.get('cart') || []; }
+    function saveCart(items) { Utils.storage.set('cart', items); }
+
+    function renderCart() {
+      const items = getCartItems();
+      const container = document.getElementById('cart-content');
+      const bottomBar = document.getElementById('cart-bottom');
+
+      if (items.length === 0) {
+        bottomBar.style.display = 'none';
+        container.innerHTML = `
+          <div class="empty-cart">
+            <div class="empty-icon">🛒</div>
+            <div class="empty-text">采购车是空的</div>
+            <a href="index.html" class="btn btn-primary">去选货</a>
+          </div>
+        `;
+        return;
+      }
+
+      bottomBar.style.display = 'flex';
+      const grouped = {};
+      items.forEach(item => { if (!grouped[item.shop]) grouped[item.shop] = []; grouped[item.shop].push(item); });
+
+      container.innerHTML = Object.entries(grouped).map(([shop, shopItems]) => `
+        <div class="cart-shop">
+          <div class="cart-shop-header">
+            <span class="shop-check ${shopItems.every(i => checkedItems[i.id + i.sku]) ? 'checked' : ''}" onclick="toggleShopCheck('${shop}')">✓</span>
+            <span style="font-size:14px;font-weight:600">🏭 ${shop}</span>
+          </div>
+          ${shopItems.map(item => {
+            const key = item.id + item.sku;
+            const checked = checkedItems[key];
+            return `
+              <div class="cart-item">
+                <span class="item-check ${checked ? 'checked' : ''}" onclick="toggleItemCheck(${item.id},'${item.sku}')">✓</span>
+                <a href="product.html?id=${item.id}" class="item-img" style="background:${getProductColor(item.id)}">
+                  <img src="${productImageSVG(item.title, item.id)}" style="width:100%;height:100%;object-fit:cover">
+                </a>
+                <div class="item-info">
+                  <div class="item-title">${item.title}</div>
+                  <div class="item-sku">${item.sku || '默认规格'}</div>
+                  <div class="item-bottom">
+                    <span class="price"><span class="symbol">¥</span>${Utils.formatPrice(item.price)}</span>
+                    <div class="qty-control" style="transform:scale(0.85)">
+                      <button class="qty-btn" onclick="updateItemQty(${item.id},'${item.sku}',${item.qty - 10})">−</button>
+                      <input class="qty-input" value="${item.qty}" onchange="updateItemQty(${item.id},'${item.sku}',parseInt(this.value))">
+                      <button class="qty-btn" onclick="updateItemQty(${item.id},'${item.sku}',${item.qty + 10})">+</button>
+                    </div>
+                  </div>
+                  ${isEditing ? `<div style="text-align:right;margin-top:6px"><button class="delete-btn" onclick="deleteItem(${item.id},'${item.sku}')">删除</button></div>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `).join('');
+
+      updateTotal();
+    }
+
+    function toggleItemCheck(id, sku) { checkedItems[id + sku] = !checkedItems[id + sku]; renderCart(); }
+    function toggleShopCheck(shop) {
+      const items = getCartItems().filter(i => i.shop === shop);
+      const allChecked = items.every(i => checkedItems[i.id + i.sku]);
+      items.forEach(i => checkedItems[i.id + i.sku] = !allChecked);
+      renderCart();
+    }
+    function toggleSelectAll() {
+      const items = getCartItems();
+      const allChecked = items.every(i => checkedItems[i.id + i.sku]);
+      items.forEach(i => checkedItems[i.id + i.sku] = !allChecked);
+      renderCart();
+    }
+    function updateItemQty(id, sku, qty) {
+      if (qty <= 0) { deleteItem(id, sku); return; }
+      const items = getCartItems();
+      const item = items.find(i => i.id === id && i.sku === sku);
+      if (item) item.qty = qty;
+      saveCart(items);
+      renderCart();
+    }
+    function deleteItem(id, sku) {
+      let items = getCartItems();
+      items = items.filter(i => !(i.id === id && i.sku === sku));
+      saveCart(items);
+      delete checkedItems[id + sku];
+      renderCart();
+      Utils.showToast('已删除');
+    }
+    function toggleEdit() {
+      isEditing = !isEditing;
+      document.getElementById('edit-btn').textContent = isEditing ? '完成' : '管理';
+      renderCart();
+    }
+    function updateTotal() {
+      const items = getCartItems();
+      let total = 0, count = 0;
+      items.forEach(item => { if (checkedItems[item.id + item.sku]) { total += item.price * item.qty; count += item.qty; } });
+      document.getElementById('total-price').textContent = '¥' + Utils.formatPrice(total);
+      document.getElementById('checkout-count').textContent = count;
+      document.getElementById('checkout-btn').classList.toggle('disabled', count === 0);
+    }
+    function checkout() {
+      const items = getCartItems().filter(i => checkedItems[i.id + i.sku]);
+      if (items.length === 0) { Utils.showToast('请选择商品'); return; }
+      Utils.storage.set('temp_order', items);
+      location.href = 'order.html';
+    }
+
+    getCartItems().forEach(i => checkedItems[i.id + i.sku] = true);
+    renderCart();
+  </script>
+</body>
+</html>

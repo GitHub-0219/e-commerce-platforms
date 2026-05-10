@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>商品详情 - Wholesale</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .product-gallery { position:relative; overflow:hidden; height:375px; background:var(--bg-card); }
+    .gallery-track { display:flex; height:100%; transition:transform 0.3s ease; }
+    .gallery-slide { min-width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+    .gallery-counter { position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.5); color:#fff; padding:4px 10px; border-radius:var(--radius-full); font-size:12px; }
+    .product-main-info { background:var(--bg-card); padding:16px; margin-bottom:8px; }
+    .product-price-bar { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+    .product-price-bar .price { font-size:24px; }
+    .product-price-bar .price .symbol { font-size:16px; }
+    .product-title-main { font-size:16px; font-weight:500; line-height:1.5; margin-bottom:8px; }
+    .product-meta { display:flex; gap:16px; font-size:12px; color:var(--text-hint); }
+    .info-section { background:var(--bg-card); padding:16px; margin-bottom:8px; }
+    .info-section .section-title { font-size:15px; font-weight:600; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+    .sku-row { display:flex; flex-wrap:wrap; gap:8px; }
+    .sku-btn { padding:8px 16px; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:13px; cursor:pointer; transition:var(--transition); }
+    .sku-btn.active { border-color:var(--primary); color:var(--primary); background:var(--primary-bg); }
+    .sku-btn:active { transform:scale(0.95); }
+    .shop-card { display:flex; align-items:center; gap:12px; }
+    .shop-avatar { width:48px; height:48px; border-radius:50%; background:var(--primary-bg); display:flex; align-items:center; justify-content:center; font-size:24px; }
+    .shop-name { font-size:15px; font-weight:600; }
+    .shop-desc { font-size:12px; color:var(--text-hint); margin-top:2px; }
+    .shop-stats { display:flex; gap:16px; margin-top:6px; font-size:12px; }
+    .shop-stats span { color:var(--text-hint); }
+    .shop-stats .val { color:var(--primary); font-weight:600; }
+    .bottom-action { position:fixed; bottom:0; left:0; right:0; background:var(--bg-card); display:flex; align-items:center; padding:8px 12px calc(8px + var(--safe-bottom)); border-top:1px solid var(--border-color); z-index:100; gap:8px; }
+    .action-icons { display:flex; gap:4px; }
+    .action-icon { display:flex; flex-direction:column; align-items:center; font-size:10px; color:var(--text-hint); padding:4px 10px; cursor:pointer; }
+    .action-icon .icon { font-size:20px; margin-bottom:2px; }
+    .action-btns { flex:1; display:flex; gap:8px; }
+    .action-btns .btn { flex:1; padding:12px; font-size:14px; font-weight:600; }
+    .btn-cart { background:#FFA940; color:#fff; border-radius:var(--radius-full); }
+    .btn-buy { background:var(--primary); color:#fff; border-radius:var(--radius-full); }
+    .btn-inquiry { background:var(--success); color:#fff; border-radius:var(--radius-full); }
+    .sku-modal { position:fixed; bottom:0; left:0; right:0; background:var(--bg-card); border-radius:var(--radius-lg) var(--radius-lg) 0 0; padding:20px 16px calc(20px + var(--safe-bottom)); z-index:200; transform:translateY(100%); transition:transform 0.3s ease; max-height:70vh; overflow-y:auto; }
+    .sku-modal.show { transform:translateY(0); }
+    .sku-modal-mask { position:fixed; inset:0; background:var(--bg-mask); z-index:199; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+    .sku-modal-mask.show { opacity:1; pointer-events:auto; }
+    .sku-modal .sku-header { display:flex; gap:12px; margin-bottom:20px; }
+    .sku-modal .sku-img { width:80px; height:80px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-size:40px; }
+    .sku-modal .sku-price { color:var(--price-color); font-size:20px; font-weight:700; }
+    .sku-modal .sku-stock { font-size:12px; color:var(--text-hint); margin-top:4px; }
+    .qty-control { display:flex; align-items:center; border:1px solid var(--border-color); border-radius:var(--radius-sm); overflow:hidden; width:fit-content; }
+    .qty-btn { width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-page); font-size:16px; }
+    .qty-input { width:48px; height:32px; text-align:center; border:none; border-left:1px solid var(--border-color); border-right:1px solid var(--border-color); font-size:14px; }
+  </style>
+</head>
+<body>
+  <div class="page" style="padding-bottom:70px">
+    <div class="header">
+      <button class="back-btn" onclick="history.back()">‹</button>
+      <span class="title">商品详情</span>
+    </div>
+
+    <div class="product-gallery" id="gallery"></div>
+
+    <div class="product-main-info">
+      <div class="product-price-bar">
+        <span class="price" id="price"></span>
+        <span class="factory-badge">🏭 工厂直供</span>
+        <span class="tag">阶梯价</span>
+      </div>
+      <div class="product-title-main" id="title"></div>
+      <div class="product-meta">
+        <span id="sales-info"></span>
+        <span id="origin-info"></span>
+        <span id="moq-info"></span>
+      </div>
+    </div>
+
+    <!-- 阶梯价格表 -->
+    <div class="info-section">
+      <div class="section-title">📊 批发阶梯价</div>
+      <div id="price-table"></div>
+    </div>
+
+    <!-- 规格选择 -->
+    <div class="info-section">
+      <div class="section-title">📐 规格选择</div>
+      <div class="sku-row" id="sku-specs"></div>
+    </div>
+
+    <!-- 供应商信息 -->
+    <div class="info-section" id="shop-section"></div>
+
+    <!-- 商品详情 -->
+    <div class="info-section">
+      <div class="section-title">📋 商品详情</div>
+      <div style="text-align:center;padding:40px 0;color:var(--text-hint);font-size:14px">
+        <div style="font-size:48px;margin-bottom:12px">📦</div>
+        <p>高品质面料，工厂直供</p>
+        <p>支持OEM/ODM定制</p>
+        <p>7天无理由退换</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-action">
+    <div class="action-icons">
+      <a class="action-icon" href="index.html"><span class="icon">🏠</span>首页</a>
+      <a class="action-icon" href="cart.html"><span class="icon">🛒</span>购物车</a>
+    </div>
+    <div class="action-btns">
+      <button class="btn btn-inquiry" onclick="doInquiry()">💬 询价</button>
+      <button class="btn btn-cart" onclick="openSku('cart')">加入采购单</button>
+      <button class="btn btn-buy" onclick="openSku('buy')">立即采购</button>
+    </div>
+  </div>
+
+  <div class="sku-modal-mask" id="sku-mask" onclick="closeSku()"></div>
+  <div class="sku-modal" id="sku-modal">
+    <div class="sku-header">
+      <div class="sku-img" id="sku-img"></div>
+      <div>
+        <div class="sku-price" id="sku-price"></div>
+        <div class="sku-stock" id="sku-moq"></div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">规格</div>
+      <div class="sku-row" id="modal-specs"></div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">采购数量</div>
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeQty(-10)">−</button>
+        <input class="qty-input" type="number" id="qty-input" value="100" min="1">
+        <button class="qty-btn" onclick="changeQty(10)">+</button>
+      </div>
+      <div style="font-size:12px;color:var(--text-hint);margin-top:6px" id="qty-hint"></div>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" id="sku-confirm" onclick="confirmSku()" style="width:100%;padding:14px;border-radius:var(--radius-full);font-size:16px;font-weight:600;background:var(--primary);color:#fff;border:none">确定</button>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    const productId = parseInt(Utils.getParam('id')) || 2001;
+    const product = MOCK.products.find(p => p.id === productId) || MOCK.products[0];
+    let selectedSpec = product.specs[0];
+    let skuAction = 'cart';
+
+    // 渲染图片轮播
+    const colors = [getProductColor(product.id), getProductColor(product.id + 1), getProductColor(product.id + 2)];
+    document.getElementById('gallery').innerHTML = `
+      <div class="gallery-track" id="gallery-track">
+        ${colors.map((c, i) => `<div class="gallery-slide" style="background:${c}"><img src="${productImageSVG(product.title, product.id + i)}" style="width:100%;height:100%;object-fit:cover"></div>`).join('')}
+      </div>
+      <div class="gallery-counter"><span id="gallery-idx">1</span>/${colors.length}</div>
+    `;
+
+    let gStartX = 0, gIdx = 0;
+    const gallery = document.getElementById('gallery');
+    const gTrack = document.getElementById('gallery-track');
+    gallery.addEventListener('touchstart', e => gStartX = e.touches[0].clientX);
+    gallery.addEventListener('touchend', e => {
+      const diff = gStartX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) {
+        gIdx = diff > 0 ? Math.min(gIdx + 1, colors.length - 1) : Math.max(gIdx - 1, 0);
+        gTrack.style.transform = `translateX(-${gIdx * 100}%)`;
+        document.getElementById('gallery-idx').textContent = gIdx + 1;
+      }
+    });
+
+    // 基本信息
+    const minPrice = product.priceTiers[product.priceTiers.length - 1].price;
+    document.getElementById('price').innerHTML = `<span class="symbol">¥</span>${Utils.formatPrice(minPrice)} 起`;
+    document.getElementById('title').textContent = product.title;
+    document.getElementById('sales-info').textContent = `已售${Utils.formatSales(product.sales)}`;
+    document.getElementById('origin-info').textContent = `产地：${product.origin}`;
+    document.getElementById('moq-info').textContent = `${product.moq}件起批`;
+
+    // 阶梯价格表
+    document.getElementById('price-table').innerHTML = renderPriceTable(product.priceTiers, product.moq);
+
+    // 规格
+    document.getElementById('sku-specs').innerHTML = product.specs.map(s =>
+      `<span class="sku-btn ${s === selectedSpec ? 'active' : ''}" onclick="selectedSpec='${s}';updateSpecDisplay()">${s}</span>`
+    ).join('');
+
+    function updateSpecDisplay() {
+      document.querySelectorAll('#sku-specs .sku-btn').forEach(b => b.classList.toggle('active', b.textContent === selectedSpec));
+      document.querySelectorAll('#modal-specs .sku-btn').forEach(b => b.classList.toggle('active', b.textContent === selectedSpec));
+    }
+
+    // 供应商
+    const supplier = MOCK.suppliers.find(s => s.id === product.shopId) || MOCK.suppliers[0];
+    document.getElementById('shop-section').innerHTML = renderSupplierCard(supplier);
+
+    // SKU弹窗
+    function openSku(action) {
+      skuAction = action;
+      document.getElementById('sku-modal').classList.add('show');
+      document.getElementById('sku-mask').classList.add('show');
+      document.getElementById('sku-img').innerHTML = `<img src="${productImageSVG(product.title, product.id)}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-sm)">`;
+      document.getElementById('sku-price').textContent = '¥' + Utils.formatPrice(minPrice) + ' 起';
+      document.getElementById('sku-moq').textContent = product.moq + '件起批';
+      document.getElementById('sku-confirm').textContent = action === 'cart' ? '加入采购单' : '立即采购';
+      document.getElementById('modal-specs').innerHTML = product.specs.map(s =>
+        `<span class="sku-btn ${s === selectedSpec ? 'active' : ''}" onclick="selectedSpec='${s}';updateSpecDisplay()">${s}</span>`
+      ).join('');
+      updateQtyHint();
+    }
+
+    function closeSku() {
+      document.getElementById('sku-modal').classList.remove('show');
+      document.getElementById('sku-mask').classList.remove('show');
+    }
+
+    function changeQty(delta) {
+      const input = document.getElementById('qty-input');
+      input.value = Math.max(product.moq, parseInt(input.value) + delta);
+      updateQtyHint();
+    }
+
+    function updateQtyHint() {
+      const qty = parseInt(document.getElementById('qty-input').value) || product.moq;
+      const tier = product.priceTiers.find(t => qty >= t.min && (t.max === Infinity || qty <= t.max));
+      if (tier) {
+        document.getElementById('qty-hint').textContent = `当前单价：¥${Utils.formatPrice(tier.price)}（${qty >= product.moq ? '满足起订量' : '未达起订量'}`;
+      }
+    }
+
+    document.getElementById('qty-input').addEventListener('input', updateQtyHint);
+
+    function confirmSku() {
+      const qty = parseInt(document.getElementById('qty-input').value) || product.moq;
+      if (qty < product.moq) { Utils.showToast(`${product.moq}件起批`); return; }
+      const tier = product.priceTiers.find(t => qty >= t.min && (t.max === Infinity || qty <= t.max));
+      const price = tier ? tier.price : product.price;
+      const sku = selectedSpec;
+      if (skuAction === 'cart') {
+        const items = Utils.storage.get('cart') || [];
+        const exist = items.find(i => i.id === product.id && i.sku === sku);
+        if (exist) { exist.qty += qty; exist.price = price; }
+        else { items.push({ ...product, sku, qty, price }); }
+        Utils.storage.set('cart', items);
+        closeSku();
+        Utils.showToast('已加入采购单');
+      } else {
+        Utils.storage.set('temp_order', [{ ...product, sku, qty, price }]);
+        closeSku();
+        location.href = 'order.html';
+      }
+    }
+
+    function doInquiry() {
+      Utils.showToast('询价请求已发送，供应商将尽快回复');
+    }
+  </script>
+</body>
+</html>

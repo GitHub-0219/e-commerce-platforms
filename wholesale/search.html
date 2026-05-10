@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>搜索 - Wholesale</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .search-header { background:var(--bg-card); padding:8px 12px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:100; border-bottom:1px solid var(--border-color); }
+    .search-header .search-bar { background:var(--bg-page); }
+    .search-header .cancel { font-size:14px; color:var(--primary); white-space:nowrap; padding:8px; }
+    .filter-bar { display:flex; align-items:center; background:var(--bg-card); padding:0 12px; border-bottom:1px solid var(--border-color); position:sticky; top:50px; z-index:99; }
+    .filter-item { flex:1; text-align:center; padding:12px 0; font-size:13px; color:var(--text-secondary); position:relative; cursor:pointer; }
+    .filter-item.active { color:var(--primary); font-weight:600; }
+    .filter-item.active::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:20px; height:2px; background:var(--primary); border-radius:1px; }
+    .filter-item .arrow { font-size:10px; margin-left:2px; }
+    .search-result-info { padding:10px 16px; font-size:12px; color:var(--text-hint); }
+    .product-list { display:flex; flex-direction:column; gap:10px; padding:0 12px 12px; }
+    .product-card-list { display:flex; background:var(--bg-card); border-radius:var(--radius-md); overflow:hidden; }
+    .product-card-list .product-img { width:120px; min-width:120px; aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
+    .product-card-list .product-info { flex:1; padding:12px; display:flex; flex-direction:column; justify-content:space-between; }
+    .product-card-list .product-title { font-size:14px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .history-tags { display:flex; flex-wrap:wrap; gap:8px; padding:16px; }
+    .history-tag { padding:6px 14px; background:var(--bg-page); border-radius:var(--radius-full); font-size:13px; color:var(--text-secondary); cursor:pointer; }
+    .history-tag:active { background:var(--border-color); }
+    .hot-search { padding:16px; }
+    .hot-search h3 { font-size:15px; margin-bottom:12px; }
+    .hot-list { display:flex; flex-direction:column; }
+    .hot-item { display:flex; align-items:center; gap:12px; padding:10px 0; cursor:pointer; }
+    .hot-item .rank { width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; border-radius:4px; }
+    .hot-item:nth-child(-n+3) .rank { background:var(--primary); color:#fff; }
+    .hot-item .hot-text { flex:1; font-size:14px; }
+    .hot-item .hot-tag { font-size:11px; padding:2px 6px; border-radius:3px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="search-header">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" id="search-input" placeholder="搜索商品、供应商" autofocus>
+      </div>
+      <span class="cancel" onclick="history.back()">取消</span>
+    </header>
+
+    <div class="filter-bar" id="filter-bar" style="display:none">
+      <div class="filter-item active" data-sort="default">综合</div>
+      <div class="filter-item" data-sort="sales">销量</div>
+      <div class="filter-item" data-sort="price-asc">价格<span class="arrow">↑</span></div>
+      <div class="filter-item" data-sort="price-desc">价格<span class="arrow">↓</span></div>
+      <div class="filter-item" data-sort="moq">起订量</div>
+    </div>
+
+    <div id="search-default">
+      <div style="padding:16px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:14px;font-weight:600">搜索历史</span>
+        <span style="font-size:12px;color:var(--text-hint);cursor:pointer" onclick="this.parentElement.nextElementSibling.innerHTML=''">清空</span>
+      </div>
+      <div class="history-tags">
+        <span class="history-tag" onclick="doSearch(this.textContent)">T恤</span>
+        <span class="history-tag" onclick="doSearch(this.textContent)">运动鞋</span>
+        <span class="history-tag" onclick="doSearch(this.textContent)">蓝牙耳机</span>
+        <span class="history-tag" onclick="doSearch(this.textContent)">保温杯</span>
+        <span class="history-tag" onclick="doSearch(this.textContent)">数据线</span>
+      </div>
+
+      <div class="hot-search">
+        <h3>🔥 批发热搜榜</h3>
+        <div class="hot-list">
+          <div class="hot-item" onclick="doSearch('纯棉T恤')"><span class="rank">1</span><span class="hot-text">纯棉T恤</span><span class="hot-tag" style="background:#FFF1E6;color:var(--primary)">HOT</span></div>
+          <div class="hot-item" onclick="doSearch('蓝牙耳机')"><span class="rank">2</span><span class="hot-text">蓝牙耳机</span><span class="hot-tag" style="background:#FFF1E6;color:var(--primary)">HOT</span></div>
+          <div class="hot-item" onclick="doSearch('运动鞋')"><span class="rank">3</span><span class="hot-text">运动鞋</span></div>
+          <div class="hot-item" onclick="doSearch('保温杯')"><span class="rank">4</span><span class="hot-text">保温杯</span></div>
+          <div class="hot-item" onclick="doSearch('数据线')"><span class="rank">5</span><span class="hot-text">数据线</span></div>
+          <div class="hot-item" onclick="doSearch('双肩包')"><span class="rank">6</span><span class="hot-text">双肩包</span></div>
+          <div class="hot-item" onclick="doSearch('防晒衣')"><span class="rank">7</span><span class="hot-text">防晒衣</span></div>
+          <div class="hot-item" onclick="doSearch('毛巾')"><span class="rank">8</span><span class="hot-text">毛巾</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="search-results" style="display:none">
+      <div class="search-result-info" id="result-info"></div>
+      <div class="product-list" id="result-list"></div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    const searchInput = document.getElementById('search-input');
+    let currentSort = 'default';
+    let results = [];
+
+    function doSearch(keyword) {
+      searchInput.value = keyword;
+      document.getElementById('search-default').style.display = 'none';
+      document.getElementById('search-results').style.display = 'block';
+      document.getElementById('filter-bar').style.display = 'flex';
+
+      results = MOCK.products.filter(p =>
+        p.title.includes(keyword) || p.shop.includes(keyword) ||
+        keyword.split('').some(ch => p.title.includes(ch))
+      );
+      if (results.length === 0) results = MOCK.products.slice(0, 8);
+
+      document.getElementById('result-info').textContent = `找到 ${results.length} 件相关商品`;
+      renderResults();
+    }
+
+    function renderResults() {
+      let sorted = [...results];
+      if (currentSort === 'sales') sorted.sort((a, b) => b.sales - a.sales);
+      else if (currentSort === 'price-asc') sorted.sort((a, b) => a.price - b.price);
+      else if (currentSort === 'price-desc') sorted.sort((a, b) => b.price - a.price);
+      else if (currentSort === 'moq') sorted.sort((a, b) => a.moq - b.moq);
+
+      const listView = document.getElementById('result-list');
+      listView.innerHTML = sorted.map(p => {
+        const minPrice = p.priceTiers[p.priceTiers.length - 1].price;
+        return `
+          <a href="product.html?id=${p.id}" class="product-card-list card">
+            <div class="product-img" style="background:${getProductColor(p.id)}">
+              <img src="${productImageSVG(p.title, p.id)}" style="width:100%;height:100%;object-fit:cover">
+            </div>
+            <div class="product-info">
+              <div class="product-title">
+                <span class="factory-badge" style="font-size:10px;padding:1px 5px;margin-right:4px">工厂</span>
+                ${p.title}
+              </div>
+              <div style="display:flex;gap:6px;margin-top:4px">
+                <span class="moq-badge">${p.moq}件起批</span>
+                <span class="tag-green" style="font-size:11px;padding:2px 6px;border-radius:3px;background:#F6FFED;color:var(--success)">${p.origin}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px">
+                <span class="price"><span class="symbol">¥</span>${Utils.formatPrice(minPrice)} 起</span>
+                <span style="font-size:11px;color:var(--text-hint)">已售${Utils.formatSales(p.sales)}</span>
+              </div>
+            </div>
+          </a>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('filter-bar').addEventListener('click', e => {
+      const item = e.target.closest('.filter-item');
+      if (!item) return;
+      document.querySelectorAll('.filter-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      currentSort = item.dataset.sort;
+      renderResults();
+    });
+
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && searchInput.value.trim()) doSearch(searchInput.value.trim());
+    });
+
+    const cat = Utils.getParam('cat');
+    if (cat) {
+      const c = MOCK.categories.find(c => c.id == cat);
+      if (c) doSearch(c.name);
+    }
+  </script>
+</body>
+</html>
